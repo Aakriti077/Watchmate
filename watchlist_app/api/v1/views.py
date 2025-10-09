@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from pyexpat.errors import messages
-from rest_framework import status, mixins
+from rest_framework import status, mixins, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -84,81 +84,97 @@ class MovieDetailAV(APIView):
 
 
 
-class StreamPlatformAV(APIView):
-    def get(self,request):
-        stream = StreamPlatform.objects.all()
-        serializer = StreamPlatformSerializer(stream, many=True, context={'request': request})
+# class StreamPlatformAV(APIView):
+#     def get(self,request):
+#         stream = StreamPlatform.objects.all()
+#         serializer = StreamPlatformSerializer(stream, many=True, context={'request': request})
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+#
+#
+#     def post(self,request):
+#         serializer = StreamPlatformSerializer(data=request.data)
+#         if serializer.is_valid():
+#             print("VALID")
+#             serializer.save()
+#             return Response(serializer.data, status = status.HTTP_201_CREATED)
+#         else:
+#             print("INVALID")
+#             return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+#
+#
+# class StreamDetailAV(APIView):
+#     def get(self,request,pk):
+#         stream = get_object_or_404(StreamPlatform, id=pk)
+#         serializer = StreamPlatformSerializer(stream,context={'request': request})
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+#
+#     def put(self,request,pk):
+#         stream = get_object_or_404(StreamPlatform,id=pk)
+#         serializer = StreamPlatformSerializer(stream, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         else:
+#             return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+#
+#     def patch(self,request,pk):
+#         stream = get_object_or_404(StreamPlatform,id=pk)
+#         serializer = StreamPlatformSerializer(stream, data=request.data,partial=True)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response (serializer.data, status=status.HTTP_200_OK)
+#         else:
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#
+#     def delete(self, request, pk):
+#         stream = get_object_or_404(StreamPlatform, id=pk)
+#         stream.delete()
+#         return Response({"message": "Movie deleted"},status = status.HTTP_204_NO_CONTENT)
+#
+
+# STREAM PLATFORM MODEL VIEWSET
+class StreamPlatformModelViewSet(viewsets.ModelViewSet):
+    queryset = StreamPlatform.objects.all()
+    serializer_class = StreamPlatformSerializer
+
+class ReviewListViewSet(viewsets.ViewSet):
+    def list(self, request):
+        queryset = Review.objects.all()
+        serializer = ReviewSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
-    def post(self,request):
-        serializer = StreamPlatformSerializer(data=request.data)
-        if serializer.is_valid():
-            print("VALID")
-            serializer.save()
-            return Response(serializer.data, status = status.HTTP_201_CREATED)
-        else:
-            print("INVALID")
-            return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-
-
-class StreamDetailAV(APIView):
-    def get(self,request,pk):
-        stream = get_object_or_404(StreamPlatform, id=pk)
-        serializer = StreamPlatformSerializer(stream,context={'request': request})
+    def retrieve(self, request, pk):
+        obj = get_object_or_404(Review, pk=pk)
+        serializer = ReviewSerializer(obj)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self,request,pk):
-        stream = get_object_or_404(StreamPlatform,id=pk)
-        serializer = StreamPlatformSerializer(stream, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-
-    def patch(self,request,pk):
-        stream = get_object_or_404(StreamPlatform,id=pk)
-        serializer = StreamPlatformSerializer(stream, data=request.data,partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response (serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        stream = get_object_or_404(StreamPlatform, id=pk)
-        stream.delete()
-        return Response({"message": "Movie deleted"},status = status.HTTP_204_NO_CONTENT)
-
-
-class ReviewListAV(mixins.ListModelMixin,mixins.CreateModelMixin,GenericAPIView):
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
-
-    def get(self,request,*args,**kwargs):
-        return self.list(request,*args,**kwargs)
-
-    def post(self,request,*args,**kwargs):
-        return self.create(request,*args,**kwargs)
-
-
-class ReviewDetailAV(mixins.RetrieveModelMixin,mixins.UpdateModelMixin,mixins.DestroyModelMixin,GenericAPIView):
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def put(self,request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def patch(self,request,*args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
-
-    def delete(self, request,*args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
+# class ReviewListAV(mixins.ListModelMixin,mixins.CreateModelMixin,GenericAPIView):
+#     queryset = Review.objects.all()
+#     serializer_class = ReviewSerializer
+#
+#     def get(self,request,*args,**kwargs):
+#         return self.list(request,*args,**kwargs)
+#
+#     def post(self,request,*args,**kwargs):
+#         return self.create(request,*args,**kwargs)
+#
+#
+# class ReviewDetailAV(mixins.RetrieveModelMixin,mixins.UpdateModelMixin,mixins.DestroyModelMixin,GenericAPIView):
+#     queryset = Review.objects.all()
+#     serializer_class = ReviewSerializer
+#
+#     def get(self, request, *args, **kwargs):
+#         return self.retrieve(request, *args, **kwargs)
+#
+#     def put(self,request, *args, **kwargs):
+#         return self.update(request, *args, **kwargs)
+#
+#     def patch(self,request,*args, **kwargs):
+#         return self.partial_update(request, *args, **kwargs)
+#
+#     def delete(self, request,*args, **kwargs):
+#         return self.destroy(request, *args, **kwargs)
+#
 
 # class ReviewListAV(APIView):
 #     def get(self, request):
