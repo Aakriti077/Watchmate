@@ -7,6 +7,7 @@ from watchlist_app.models import StreamPlatform
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path('api-auth/', include('rest_framework.urls')),
     path("watch/", include("watchlist_app.api.v1.urls")),
 
     # path("stream/", include("watchlist_app.api.v1.urls")),

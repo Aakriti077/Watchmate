@@ -3,10 +3,13 @@ from django.shortcuts import render, get_object_or_404
 from pyexpat.errors import messages
 from rest_framework import status, mixins, viewsets
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from watchlist_app.api.v1.permissions import IsAdminOrReadOnly, IsReviewUserOrReadOnly
 from watchlist_app.api.v1.serializers import WatchListSerializer, StreamPlatformSerializer, ReviewSerializer
 from watchlist_app.models import WatchList, StreamPlatform, Review
 
@@ -137,16 +140,42 @@ class StreamPlatformModelViewSet(viewsets.ModelViewSet):
     queryset = StreamPlatform.objects.all()
     serializer_class = StreamPlatformSerializer
 
-class ReviewListViewSet(viewsets.ViewSet):
-    def list(self, request):
-        queryset = Review.objects.all()
-        serializer = ReviewSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    # def get_queryset(self):
+    #     if self.action == 'list':
+    #         queryset = StreamPlatform.objects.all()
+    #         return queryset
+    #
+    #     elif self.action == 'retrieve':
+    #         queryset = StreamPlatform.objects.filter(name="Netflix")
+    #         return queryset
 
-    def retrieve(self, request, pk):
-        obj = get_object_or_404(Review, pk=pk)
-        serializer = ReviewSerializer(obj)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+class ReviewModelViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [IsReviewUserOrReadOnly]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        watchlist = serializer.validated_data['watchlist']
+
+        if Review.objects.filter(user=user, watchlist=watchlist).exists():
+            raise ValidationError("Review already exists")
+        return serializer.save(user=user)
+
+
+# class ReviewListViewSet(viewsets.ViewSet):
+#     def list(self, request):
+#         queryset = Review.objects.all()
+#         serializer = ReviewSerializer(queryset, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+#
+#     def retrieve(self, request, pk):
+#         obj = get_object_or_404(Review, pk=pk)
+#         serializer = ReviewSerializer(obj)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 # class ReviewListAV(mixins.ListModelMixin,mixins.CreateModelMixin,GenericAPIView):
 #     queryset = Review.objects.all()
